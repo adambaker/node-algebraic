@@ -44,15 +44,21 @@ Monoid.dot   = function(a, b) {return a.monoid.dot(a,b);} //minimal type checkin
 
 exports.Monoid = Monoid;
 
+function check_laws(m)
+{
+  var id_left  = qc.forAll(m.laws.left_identity,  m.arb);
+  var id_right = qc.forAll(m.laws.right_identity, m.arb);
+  var assoc    = qc.forAll(m.laws.associativity,  m.arb, m.arb, m.arb);
+  return id_left && id_right && assoc;
+}
+
+exports.check_laws = check_laws;
+
 function test_all_monoids()
 {
   Monoid.known
     .filter(function(m) {return m.eq && m.arb;})
-    .forEach(function(m){
-      qc.forAll(m.laws.left_identity,  m.arb);
-      qc.forAll(m.laws.right_identity, m.arb);
-      qc.forAll(m.laws.associativity,  m.arb, m.arb, m.arb);
-    })
+    .forEach(check_laws)
   ;
 }
 exports.test_all_monoids = test_all_monoids;
