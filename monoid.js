@@ -2,6 +2,9 @@
 var qc = require("quickcheck");
 
 function id(a) { return a; }
+Function.prototype.o = function(f) {
+  return function(x) { return this(f(x)); }
+}; //function composition, like an opertor.
 
 function Monoid(type, props)
 {
@@ -44,6 +47,11 @@ Monoid.dot   = function(a, b) {return a.monoid.dot(a,b);} //minimal type checkin
 
 exports.Monoid = Monoid;
 
+function aggregate(monoid, arry) {
+  return arry.reduce(monoid.dot, monoid.id);
+}
+exports.aggregate = aggregate;
+
 function check_laws(m)
 {
   var num_errors = 0;
@@ -57,7 +65,6 @@ function check_laws(m)
   console.log();
   return num_errors;
 }
-
 exports.check_laws = check_laws;
 
 function test_all_monoids()
