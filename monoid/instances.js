@@ -1,4 +1,4 @@
-var m  = require('./monoid');
+var m  = require('../monoid');
 var qc = require('quickcheck');
 
 var proto;
@@ -146,5 +146,3 @@ proto.dot = function(other) {
   return result;
 };
 Monoid(Log, {id: new Log({}), arb: Object.arb});
-
-m.test_all_monoids();
