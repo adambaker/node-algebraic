@@ -56,10 +56,10 @@ proto.eq  = function(other) { return this.val === other.val };
 proto.toString = function() { return this.val; };
 Monoid(Min, { id: new Min(inf), arb: function() {return new Min(arbNum());} });
 exports.Min = Min;
+
 function Any (val) {
   this.val = val;
 }
-
 proto = Any.prototype;
 proto.dot = function(other) { return new Any(this.val || other.val) };
 proto.eq  = function(other) { return this.val === other.val };
@@ -67,5 +67,26 @@ proto.toString = function() { return this.val; };
 Monoid(Any, {id: new Any(false), arb: function() {return new Any(qc.arbBool())} });
 exports.Any = Any;
 
+function All (val) {
+this.val = val;
+}
+proto = All.prototype;
+proto.dot = function(other) { return new All(this.val && other.val) };
+proto.eq  = function(other) { return this.val === other.val };
+proto.toString = function() { return this.val; };
+Monoid(All, {id: new All(true), arb: function() {return new All(qc.arbBool())} });
+exports.All = All;
+
+proto = String.prototype;
+proto.dot = function(other) { return this + other };
+proto.eq  = function(other) { return this.valueOf() === other.valueOf() };
+Monoid(String, {id: '', arb: qc.arbString });
+
+proto = Array.prototype;
+proto.dot = function(other) { return this.concat(other) }
+proto.eq  = function(other) {
+return this.length === other.length && this.every(function(v, i){return identOrEq(v, other[i])});
+}
+Monoid(Array, {id: [], arb: function(){return qc.arbArray(qc.arbByte)}});
 
 m.test_all_monoids();
