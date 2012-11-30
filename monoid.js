@@ -46,19 +46,27 @@ exports.Monoid = Monoid;
 
 function check_laws(m)
 {
-  var id_left  = qc.forAll(m.laws.left_identity,  m.arb);
-  var id_right = qc.forAll(m.laws.right_identity, m.arb);
-  var assoc    = qc.forAll(m.laws.associativity,  m.arb, m.arb, m.arb);
-  return id_left && id_right && assoc;
+  var num_errors = 0;
+  console.log("Testing " + m.name + "'s monoid laws:");
+  console.log("left identity:");
+  num_errors += qc.forAll(m.laws.left_identity,  m.arb) ? 0 : 1;
+  console.log("right identity:");
+  num_errors += qc.forAll(m.laws.right_identity, m.arb) ? 0 : 1;
+  console.log("associativity:");
+  num_errors += qc.forAll(m.laws.associativity,  m.arb, m.arb, m.arb) ? 0 : 1;
+  console.log();
+  return num_errors;
 }
 
 exports.check_laws = check_laws;
 
 function test_all_monoids()
 {
-  Monoid.known
+  var results = Monoid.known
     .filter(function(m) {return m.eq && m.arb;})
-    .forEach(check_laws)
+    .map(check_laws)
+    .reduce(function(a,b){return a+b;}, 0)
   ;
+  console.log(results + ' test(s) failed.');
 }
 exports.test_all_monoids = test_all_monoids;
