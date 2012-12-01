@@ -9,8 +9,8 @@ Function.prototype.o = function(f) {
 function Monoid(type, props)
 {
   var proto = type.prototype;
-  if( (proto.id == null && props.id == null) ) throw('Monoid identity not defined for ' + type);
-  if( !(proto.dot || props.dot) ) throw('Monoid operator not defined for ' + type);
+  if( (proto.id == null && props.id == null) ) throw('Monoid identity not defined for ' + type.name);
+  if( !(proto.dot || props.dot) ) throw('Monoid operator not defined for ' + type.name);
 
   proto.id  = proto.id  || props.id;
   proto.dot = proto.dot || props.dot;
@@ -39,12 +39,11 @@ function Monoid(type, props)
 
   proto.monoid = type; //instances of subtypes know the type that makes them a monoid
   Monoid.known.push(type);
+  Monoid.byName[type.name] = type;
 }
-
 Monoid.known = []; //known monoid types.
-
+Monoid.byName = {};//known types by name
 Monoid.dot   = function(a, b) {return a.monoid.dot(a,b);} //minimal type checking
-
 exports.Monoid = Monoid;
 
 function aggregate(arry, monoid) {
