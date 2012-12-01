@@ -26,6 +26,7 @@ proto.eq  = function(other) {
   return this.val === other.val ||
     Math.abs(1 - this.val/other.val) < Sum.eqDelta;
 };
+Sum.dotPrimitive = function(a, b){return a+b;};
 Monoid(Sum, {id: new Sum(0), arb: function() {return new Sum(arbNum())} });
 exports.Sum = Sum;
 
@@ -41,6 +42,7 @@ proto.eq  = function(other) {
   return this.val === other.val ||
     Math.abs(1 - this.val/other.val) < Product.eqDelta;
 };
+Product.dotPrimitive = function(a, b){return a*b;};
 Monoid(Product, { id: new Product(1), arb: function() {return new Product(arbNum());} });
 exports.Product = Product;
 
@@ -50,6 +52,7 @@ function Max(val) {
 }
 Max.prototype = new ValWrapper(); Max.prototype.constructor = Max;
 Max.prototype.dot = function(other) { return this.val > other.val ? this : other; };
+Max.dotPrimitive = function(a, b){a > b ? a : b;};
 Monoid(Max, { id: new Max(-inf), arb: function() {return new Max(arbNum());} });
 exports.Max = Max;
 
@@ -60,6 +63,7 @@ function Min(val) {
 Min.prototype = new ValWrapper(); Min.prototype.constructor = Min;
 Min.prototype.dot = function(other) { return this.val < other.val ? this : other; };
 Monoid(Min, { id: new Min(inf), arb: function() {return new Min(arbNum());} });
+Min.dotPrimitive = function(a, b){a < b ? a : b;};
 exports.Min = Min;
 
 
@@ -68,7 +72,7 @@ function Any (val) {
 }
 Any.prototype = new ValWrapper(); Any.prototype.constructor = Any;
 Any.prototype.dot = function(other) { return new Any(this.val || other.val) };
-proto.eq  = function(other) { return this.val === other.val };
+Any.dotPrimitive = function(a, b){return a||b;};
 Monoid(Any, {id: new Any(false), arb: function() {return new Any(qc.arbBool())} });
 exports.Any = Any;
 
@@ -78,7 +82,7 @@ function All (val) {
 }
 All.prototype = new ValWrapper(); All.prototype.constructor = All;
 All.prototype.dot = function(other) { return new All(this.val && other.val) };
-proto.eq  = function(other) { return this.val === other.val };
+All.dotPrimitive = function(a, b){return a&&b;};
 Monoid(All, {id: new All(true), arb: function() {return new All(qc.arbBool())} });
 exports.All = All;
 
@@ -86,6 +90,7 @@ exports.All = All;
 proto = String.prototype;
 proto.dot = function(other) { return this + other };
 proto.eq  = function(other) { return this.valueOf() === other.valueOf() };
+String.dotPrimitive = function(a, b){return a + b;};
 Monoid(String, {id: '', arb: qc.arbString });
 
 
@@ -94,6 +99,7 @@ proto.dot = function(other) { return this.concat(other) }
 proto.eq  = function(other) {
   return this.length === other.length && this.every(function(v, i){return identOrEq(v, other[i])});
 }
+Array.dotPrimitive = function(a, b){return a.concat(b);};
 Monoid(Array, {id: [], arb: function(){return qc.arbArray(qc.arbByte)}});
 
 

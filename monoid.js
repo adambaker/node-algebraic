@@ -47,10 +47,17 @@ Monoid.dot   = function(a, b) {return a.monoid.dot(a,b);} //minimal type checkin
 
 exports.Monoid = Monoid;
 
-function aggregate(monoid, arry) {
+function aggregate(arry, monoid) {
+  if(!monoid) return arry.reduce(Monoid.dot);
   return arry.reduce(monoid.dot, monoid.id);
 }
 exports.aggregate = aggregate;
+
+function aggregatePrimitive(arry, monoid) {
+  var id = monoid.id.val === undefined ? monoid.id : monoid.id.val;
+  return arry.reduce(monoid.dotPrimitive, id);
+}
+exports.aggregatePrimitive = aggregatePrimitive;
 
 function check_laws(m)
 {
