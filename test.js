@@ -1,8 +1,10 @@
 #!/usr/bin/env node
 
-var Sum = require('./monoid/instances').Sum;
-var m   = require('./monoid');
-var qc  = require('quickcheck');
+var Sum   = require('./monoid/instances').Sum;
+var m     = require('./monoid');
+var qc    = require('quickcheck');
+var agg_p = require('./monoid/parallel').aggregate_p;
+var assert= require('assert');
 m.test_all_monoids();
 
 function create_sum(length)
@@ -27,7 +29,7 @@ qc.forAll(agg_sum, qc.arbByte);
 console.log('Testing aggregatePrimitive on Sum');
 qc.forAll(agg_sum_primitive, qc.arbByte);
 
-var len = 60000000;
+var len = 20000000;
 var arrPrim = create_sum(len);
 /*var arr = arrPrim.map(function(i){return new Sum(i)});
 var time = process.hrtime();
@@ -36,6 +38,15 @@ var diff = process.hrtime(time);
 console.log('aggregate took %d seconds and %d nanoseconds', diff[0], diff[1]);
 */
 var time = process.hrtime();
-m.aggregatePrimitive(arrPrim, Sum);
+var answer = m.aggregatePrimitive(arrPrim, Sum);
 var diff = process.hrtime(time);
 console.log('aggregate took %d seconds and %d nanoseconds', diff[0], diff[1]);
+
+time = process.hrtime();
+agg_p(arrPrim, Sum, 6, function(result) {
+  var diff = process.hrtime(time);
+  console.log('aggregate_p took %d seconds and %d nanoseconds', diff[0], diff[1]);
+  console.log('answer: ' + answer);
+  console.log('got:    ' + result);
+  process.exit(0);
+});
