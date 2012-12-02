@@ -1,4 +1,3 @@
-#!/usr/bin/env node
 var qc = require("quickcheck");
 
 function id(a) { return a; }

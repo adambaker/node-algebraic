@@ -13,6 +13,7 @@ function ValWrapper() {}
 proto = ValWrapper.prototype;
 proto.toString = function() { return this.val; };
 proto.eq  = function(other) { return this.val === other.val };
+proto.toJSON = proto.toString;
 
 
 function Sum (val) {
