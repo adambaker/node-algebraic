@@ -99,7 +99,8 @@ function All (val) {
 All.prototype = new ValWrapper(); All.prototype.constructor = All;
 All.prototype.dot = function(other) { return new All(this.val && All.coerce(other).val) };
 All.dotPrimitive = function(a, b){return a&&b;};
-Monoid(All, {id: new All(true), arb: function() {return new All(qc.arbBool())} });
+Monoid(All, {id: new All(false), arb: function() {return new All(qc.arbBool())} });
+All.coerce = type_coerce(All, 'boolean');
 exports.All = All;
 
 
@@ -187,3 +188,26 @@ proto.dot = function(other) {
 };
 Monoid(Log, {id: new Log({}), arb: function(){return new Log(Object.arb);}});
 exports.Log = Log;
+
+
+function Line(line) {
+  this.val = line
+}
+Line.prototype = new ValWrapper(); Line.prototype.constructor = Line;
+Line.prototype.dot = function(other) {
+  other = Line.coerce(other);
+  if(other.val == null) return this;
+  if(this.val == null) return other;
+  return new Line(this.val + "\n" + other.val);
+};
+Line.dotPrimitive = function(a, b){
+  if(a == null) return b;
+  if(b == null) return a;
+  return a + "\n" + b;
+};
+Monoid(Line, {id: new Line(null), arb: function() {return new Line(qc.arbString())} });
+Line.coerce = function(a){
+  if(a instanceof Line) return a;
+  return a.toString();
+};
+exports.Line = Line;
