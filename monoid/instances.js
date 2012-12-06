@@ -9,6 +9,15 @@ var inf = Number.POSITIVE_INFINITY;
 function arbNum() { return Math.log(Math.abs(qc.arbDouble())+1); }
 function identOrEq(a, b) { return a === b || (a.eq && a.eq(b)) }
 
+function type_coerce(constructor, type) {
+  return function(val) {
+    if(val instanceof constructor) return val;
+    if(typeof val === type) return new constructor(val);
+    throw val + " must be type" + type + ' .';
+  };
+}
+num_coerce = function(c){return type_coerce(c, 'number');};
+
 function ValWrapper() {}
 proto = ValWrapper.prototype;
 proto.valueOf  = function() { return this.val; };
@@ -23,12 +32,13 @@ function Sum (val) {
 Sum.eqDelta = 1e-10;
 Sum.prototype = new ValWrapper(); Sum.prototype.constructor = Sum;
 proto = Sum.prototype;
-proto.dot = function(other) { return new Sum(this.val + other.val) };
+proto.dot = function(other) { return new Sum(this.val + Sum.coerce(other).val) };
 proto.eq  = function(other) {
   return this.val === other.val ||
     Math.abs(1 - this.val/other.val) < Sum.eqDelta;
 };
 Sum.dotPrimitive = function(a, b){return a+b;};
+Sum.coerce = num_coerce(Sum);
 Monoid(Sum, {id: new Sum(0), arb: function() {return new Sum(arbNum())} });
 exports.Sum = Sum;
 
@@ -45,6 +55,7 @@ proto.eq  = function(other) {
     Math.abs(1 - this.val/other.val) < Product.eqDelta;
 };
 Product.dotPrimitive = function(a, b){return a*b;};
+Product.coerce = num_coerce(Product);
 Monoid(Product, { id: new Product(1), arb: function() {return new Product(arbNum());} });
 exports.Product = Product;
 
@@ -53,8 +64,9 @@ function Max(val) {
   this.val = val;
 }
 Max.prototype = new ValWrapper(); Max.prototype.constructor = Max;
-Max.prototype.dot = function(other) { return this.val > other.val ? this : other; };
+Max.prototype.dot = function(other) { return this.val > Max.coerce(other).val ? this : Max.coerce(other); };
 Max.dotPrimitive = function(a, b){a > b ? a : b;};
+Max.coerce = num_coerce(Max);
 Monoid(Max, { id: new Max(-inf), arb: function() {return new Max(arbNum());} });
 exports.Max = Max;
 
@@ -63,9 +75,10 @@ function Min(val) {
   this.val = val;
 }
 Min.prototype = new ValWrapper(); Min.prototype.constructor = Min;
-Min.prototype.dot = function(other) { return this.val < other.val ? this : other; };
-Monoid(Min, { id: new Min(inf), arb: function() {return new Min(arbNum());} });
+Min.prototype.dot = function(other) { return this.val < Min.coerce(other).val ? this : Min.coerce(other); };
 Min.dotPrimitive = function(a, b){a < b ? a : b;};
+Min.coerce = num_coerce(Min);
+Monoid(Min, { id: new Min(inf), arb: function() {return new Min(arbNum());} });
 exports.Min = Min;
 
 
@@ -73,8 +86,9 @@ function Any (val) {
   this.val = val;
 }
 Any.prototype = new ValWrapper(); Any.prototype.constructor = Any;
-Any.prototype.dot = function(other) { return new Any(this.val || other.val) };
+Any.prototype.dot = function(other) { return new Any(this.val || Any.coerce(other).val) };
 Any.dotPrimitive = function(a, b){return a||b;};
+Any.coerce = type_coerce(Any, 'boolean');
 Monoid(Any, {id: new Any(false), arb: function() {return new Any(qc.arbBool())} });
 exports.Any = Any;
 
@@ -83,7 +97,7 @@ function All (val) {
   this.val = val;
 }
 All.prototype = new ValWrapper(); All.prototype.constructor = All;
-All.prototype.dot = function(other) { return new All(this.val && other.val) };
+All.prototype.dot = function(other) { return new All(this.val && All.coerce(other).val) };
 All.dotPrimitive = function(a, b){return a&&b;};
 Monoid(All, {id: new All(true), arb: function() {return new All(qc.arbBool())} });
 exports.All = All;
@@ -93,6 +107,7 @@ proto = String.prototype;
 proto.dot = function(other) { return this + other };
 proto.eq  = function(other) { return this.valueOf() === other.valueOf() };
 String.dotPrimitive = function(a, b){return a + b;};
+String.coerce = function(x) { return x.toString() };
 Monoid(String, {id: '', arb: qc.arbString });
 
 
@@ -141,7 +156,7 @@ function Log(logs)
 {
   var self = this;
   Object.keys(logs).forEach(function(key){
-    add_log_key(self, key, self[key]);
+    add_log_key(self, key, logs[key]);
   });
 }
 proto = Log.prototype;
