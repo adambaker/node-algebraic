@@ -1,4 +1,4 @@
-m = require('../monoid');
+m = require('./core');
 require('./instances');
 
 process.on('message', function(message) {

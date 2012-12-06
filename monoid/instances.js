@@ -1,4 +1,4 @@
-var m  = require('../monoid');
+var m  = require('./core');
 var qc = require('quickcheck');
 
 var proto;
@@ -11,7 +11,8 @@ function identOrEq(a, b) { return a === b || (a.eq && a.eq(b)) }
 
 function ValWrapper() {}
 proto = ValWrapper.prototype;
-proto.toString = function() { return this.val; };
+proto.valueOf  = function() { return this.val; };
+proto.toString = proto.valueOf;
 proto.eq  = function(other) { return this.val === other.val };
 proto.toJSON = proto.toString;
 
@@ -144,19 +145,30 @@ function Log(logs)
   });
 }
 proto = Log.prototype;
-proto.addLog = function(key, inital) { add_log_key(this, key, inital); }
+proto.addLog = function(key, inital) {
+  if(this === Log.id){ throw "Tried to mutate Log.id" };
+  add_log_key(this, key, inital);
+  return this;
+}
+proto.log = function(values) {
+  if(this === Log.id){ throw "Tried to mutate Log.id" };
+  var self = this;
+  Object.keys(values).forEach(function(key){
+    self[key] = self[key]._(values[key]);
+  });
+  return this;
+};
 proto.dot = function(other) {
   var self = this;
-  result = {};
+  var result = {};
   Object.keys(this).forEach(function(k) { result[k] = self[k]; });
   Object.keys(other).forEach(function(k) {
     if(result.hasOwnProperty(k)){
-      result[k] = Monoid.dot(self[k], other[k]);
+      result[k] = result[k].dot(other[k]);
     }
-    else {
-      result[k] = other[k];
-    }
+    else { result[k] = other[k]; }
   });
-  return result;
+  return new Log(result);
 };
-Monoid(Log, {id: new Log({}), arb: Object.arb});
+Monoid(Log, {id: new Log({}), arb: function(){return new Log(Object.arb);}});
+exports.Log = Log;

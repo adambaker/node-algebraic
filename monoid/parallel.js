@@ -1,4 +1,4 @@
-var m = require('../monoid');
+var m = require('./core');
 var cp = require('child_process');
 
 var workers = Array(6);
