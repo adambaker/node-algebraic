@@ -1,11 +1,13 @@
 #!/usr/bin/env node
 
-var Sum   = require('./monoid/instances').Sum;
 var m     = require('./monoid');
-var qc    = require('quickcheck');
 var agg_p = require('./monoid/parallel').aggregate_p;
-var assert= require('assert');
-m.test_all_monoids();
+var test  = require('./monoid/test');
+var qc    = require('quickcheck');
+
+var Sum   = m.Sum;
+
+test.test_all_monoids();
 
 function create_sum(length)
 {
