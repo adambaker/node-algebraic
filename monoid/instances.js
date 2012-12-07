@@ -13,7 +13,7 @@ function type_coerce(constructor, type) {
   return function(val) {
     if(val instanceof constructor) return val;
     if(typeof val === type) return new constructor(val);
-    throw val + " must be type" + type + ' .';
+    throw val + " must be type " + type + '.';
   };
 }
 num_coerce = function(c){return type_coerce(c, 'number');};
@@ -211,3 +211,33 @@ Line.coerce = function(a){
   return a.toString();
 };
 exports.Line = Line;
+
+
+function First(val) {
+  this.val = val;
+}
+First.prototype = new ValWrapper(); First.prototype.constructor = First;
+proto = First.prototype;
+proto.dot = function(other) { if(this.val === undefined){return other} return this; }
+proto.eq  = function(other) { return this.val.eq(other.val); };
+First.dotPrimitive = function(a, b){if(this === undefined){return other} return this; };
+Monoid(First, {id: new First(undefined), arb: function() {return new First(arbNum())} });
+exports.First = First;
+
+
+function Last(val) {
+  this.val = val;
+}
+Last.prototype = new ValWrapper(); Last.prototype.constructor = Last;
+proto = Last.prototype;
+proto.dot = function(other) { if(other.val === undefined){return this} return other; }
+proto.eq  = function(other) { return this.val.eq(other.val); };
+Last.dotPrimitive = function(a, b){if(this === undefined){return other} return this; };
+Monoid(Last, {id: new Last(undefined), arb: function() {return new Last(arbNum())} });
+exports.Last = Last;
+
+function MaximallyUseless(){}
+proto = MaximallyUseless.prototype;
+proto.dot = function() { return this.id; };
+proto.eq = function(){ return true; };
+Monoid(MaximallyUseless, {id: new MaximallyUseless(), arb: function() {return MaximallyUseless.id} });
