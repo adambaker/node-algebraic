@@ -99,6 +99,7 @@ function All (val) {
 All.prototype = new ValWrapper(); All.prototype.constructor = All;
 All.prototype.dot = function(other) { return new All(this.val && All.coerce(other).val) };
 All.dotPrimitive = function(a, b){return a&&b;};
+All.coerce = type_coerce(All, 'boolean');
 Monoid(All, {id: new All(true), arb: function() {return new All(qc.arbBool())} });
 exports.All = All;
 
