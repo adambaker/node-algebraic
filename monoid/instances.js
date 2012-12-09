@@ -7,13 +7,21 @@ var Monoid = m.Monoid;
 var inf = Number.POSITIVE_INFINITY;
 
 function arbNum() { return Math.log(Math.abs(qc.arbDouble())+1); }
+function arbObject() {
+  random_prop = String.arb();
+
+  obj = { a: Sum.arb(), b: All.arb(), stuff: Array.arb() };
+  obj[random_prop] = String.arb();
+  return obj;
+}
+
 function identOrEq(a, b) { return a === b || (a.eq && a.eq(b)) }
 
 function type_coerce(constructor, type) {
   return function(val) {
     if(val instanceof constructor) return val;
     if(typeof val === type) return new constructor(val);
-    throw val + " must be type " + type + '.';
+    throw val + " must be type " + type + ' or ' + constructor.name + '. Got type: ' + val.constructor.name;
   };
 }
 num_coerce = function(c){return type_coerce(c, 'number');};
@@ -113,7 +121,7 @@ Monoid(String, {id: '', arb: qc.arbString });
 
 
 proto = Array.prototype;
-proto.dot = function(other) { return this.concat(other) }
+proto.dot = Array.prototype.concat;
 proto.eq  = function(other) {
   return this.length === other.length && this.every(function(v, i){return identOrEq(v, other[i])});
 }
@@ -121,10 +129,16 @@ Array.dotPrimitive = function(a, b){return a.concat(b);};
 Monoid(Array, {id: [], arb: function(){return qc.arbArray(qc.arbByte)}});
 
 
-proto = Object.prototype;
+function ObjectUnion(object) {
+  var self = this;
+  Object.keys(object).forEach(function(key) {
+    self[key] = object[key];
+  });
+}
+proto = ObjectUnion.prototype;
 proto.dot = function(other) {
   var self = this;
-  var result = {};
+  var result = new ObjectUnion({});
   Object.keys(this).forEach(function(key) { result[key] = self[key]; });
   Object.keys(other).forEach(function(key){ result[key] = other[key]; });
   return result;
@@ -135,15 +149,14 @@ proto.eq = function(other) {
 
   return Object.keys(this).every(function(key) { return other[key] != null && self[key].eq(other[key]); });
 }
-Object.arb = function() {
-  random_prop = String.arb();
-  return { a: Sum.arb(), b: All.arb(), randop_prop: String.arb(), stuff: Array.arb() };
-}
-Monoid(Object, {id: {}});
+Monoid(ObjectUnion, {
+  id: new ObjectUnion({}),
+  arb: function() { return new ObjectUnion( arbObject() ); }
+});
 
 
 function add_log_key(logs, key, value) {
-  if( value.monoid === Object && value instanceof Function )
+  if( value instanceof Function )
   { //got a constructor
     logs[key] = value.id;
   }
@@ -153,14 +166,14 @@ function add_log_key(logs, key, value) {
   }
 }
 
-function Log(logs)
-{
+function Log(logs) {
   var self = this;
   Object.keys(logs).forEach(function(key){
     add_log_key(self, key, logs[key]);
   });
 }
-proto = Log.prototype;
+Log.prototype = new ObjectUnion({});
+proto = Log.prototype; proto.constructor = Log;
 proto.addLog = function(key, inital) {
   if(this === Log.id){ throw "Tried to mutate Log.id" };
   add_log_key(this, key, inital);
@@ -186,7 +199,7 @@ proto.dot = function(other) {
   });
   return new Log(result);
 };
-Monoid(Log, {id: new Log({}), arb: function(){return new Log(Object.arb);}});
+Monoid(Log, {id: new Log({}), arb: function(){ return new Log(arbObject()); }});
 exports.Log = Log;
 
 
@@ -213,6 +226,7 @@ Line.coerce = function(a){
 exports.Line = Line;
 
 
+Number.prototype.eq = function(other) { return this == other };
 function First(val) {
   this.val = val;
 }
@@ -235,6 +249,7 @@ proto.eq  = function(other) { return this.val.eq(other.val); };
 Last.dotPrimitive = function(a, b){if(this === undefined){return other} return this; };
 Monoid(Last, {id: new Last(undefined), arb: function() {return new Last(arbNum())} });
 exports.Last = Last;
+
 
 function MaximallyUseless(){}
 proto = MaximallyUseless.prototype;
