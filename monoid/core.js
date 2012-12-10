@@ -22,13 +22,13 @@ function Monoid(type, props)
   proto.eq  = proto.eq  || props.eq;
   proto.arb = proto.arb || props.arb;
 
-  type.eq  = type.eq  ||function(a, b) { return a.eq(b) };
-  type.arb = type.arb ||props.arb;
+  type.eq  = type.eq  || function(a, b) { return a.eq(b) };
+  type.arb = type.arb || props.arb;
 
   type.laws = {
     left_identity:  function left_identity(a) { return type.id._(a).eq(a); },
     right_identity: function right_identity(a){ return a._(type.id).eq(a); },
-    associativity:  function associativity(a, b, c){ return a._(b._(c)).eq( (a._(b))._(c) ); }
+    associativity:  function associativity(a, b, c){return a._(b._(c)).eq( (a._(b))._(c) );}
   };
 
   proto.monoid = type; //instances of subtypes know the type that makes them a monoid

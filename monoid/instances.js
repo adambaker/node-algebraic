@@ -1,5 +1,6 @@
 var m  = require('./core');
 var qc = require('quickcheck');
+var id = require('../functional').id;
 
 var proto;
 
@@ -224,6 +225,47 @@ Line.coerce = function(a){
   return a.toString();
 };
 exports.Line = Line;
+
+
+function PredicateUnion() {
+  this.ps = Array.prototype.slice.call(arguments);
+}
+proto = PredicateUnion.prototype;
+proto.contains = function(x) { return this.ps.map(function(p){return p(x);}).some(id); };
+proto.union = function(p){
+  if(p instanceof PredicateUnion) {
+    var ps = this.ps;
+    p.ps.forEach(function(pred) { ps.push(pred) });
+  }
+  else { this.ps.push(p); }
+  return this;
+};
+proto.dot = function(other) {
+  p = new PredicateUnion();
+  return p.union(this).union(other);
+};
+Monoid(PredicateUnion, {id: new PredicateUnion() });
+//eq and arb are impossible for this monoid, and approximations are very hard.
+
+
+function PredicateIntersection() {
+  this.ps = Array.prototype.slice.call(arguments);
+}
+proto = PredicateIntersection.prototype;
+proto.contains = function(x) { return this.ps.map(function(p){return p(x);}).every(id); };
+proto.intersect = function(p){
+  if(p instanceof PredicateIntersection) {
+    var ps = this.ps;
+    p.ps.forEach(function(pred) { ps.push(pred) });
+  }
+  else { this.ps.push(p); }
+  return this;
+};
+proto.dot = function(other) {
+  p = new PredicateIntersection();
+  return p.intersect(this).intersect(other);
+};
+Monoid(PredicateIntersection, {id: new PredicateIntersection(function(x){ return false }) });
 
 
 Number.prototype.eq = function(other) { return this == other };
