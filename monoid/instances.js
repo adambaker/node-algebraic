@@ -227,45 +227,45 @@ Line.coerce = function(a){
 exports.Line = Line;
 
 
-function PredicateUnion() {
-  this.ps = Array.prototype.slice.call(arguments);
+function PredicateUnion(p) {
+  this.p = p;
 }
 proto = PredicateUnion.prototype;
-proto.contains = function(x) { return this.ps.map(function(p){return p(x);}).some(id); };
+proto.contains = function(x) { return this.p(x); }
 proto.union = function(p){
   if(p instanceof PredicateUnion) {
-    var ps = this.ps;
-    p.ps.forEach(function(pred) { ps.push(pred) });
+    p = p.p;
   }
-  else { this.ps.push(p); }
+  thisp = this.p;
+  this.p = function(x) { return thisp(x) || p(x) }
   return this;
 };
 proto.dot = function(other) {
-  p = new PredicateUnion();
-  return p.union(this).union(other);
+  p = new PredicateUnion(this);
+  return p.union(other);
 };
-Monoid(PredicateUnion, {id: new PredicateUnion() });
+Monoid(PredicateUnion, {id: new PredicateUnion(function(x){ return false; }) });
 //eq and arb are impossible for this monoid, and approximations are very hard.
 
 
-function PredicateIntersection() {
-  this.ps = Array.prototype.slice.call(arguments);
+function PredicateIntersection(p) {
+  this.p = p;
 }
 proto = PredicateIntersection.prototype;
-proto.contains = function(x) { return this.ps.map(function(p){return p(x);}).every(id); };
-proto.intersect = function(p){
+proto.contains = function(x) { return this.p(x); }
+proto.intersection = function(p){
   if(p instanceof PredicateIntersection) {
-    var ps = this.ps;
-    p.ps.forEach(function(pred) { ps.push(pred) });
+    p = p.p;
   }
-  else { this.ps.push(p); }
+  thisp = this.p;
+  this.p = function(x) { return thisp(x) && p(x) }
   return this;
 };
 proto.dot = function(other) {
-  p = new PredicateIntersection();
-  return p.intersect(this).intersect(other);
+  p = new PredicateIntersection(this);
+  return p.intersection(other);
 };
-Monoid(PredicateIntersection, {id: new PredicateIntersection(function(x){ return false }) });
+Monoid(PredicateIntersection, {id: new PredicateIntersection(function(x) {return true;}) });
 
 
 Number.prototype.eq = function(other) { return this == other };
