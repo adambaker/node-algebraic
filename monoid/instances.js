@@ -148,7 +148,9 @@ proto.eq = function(other) {
   if(this === other) return true;
   var self = this;
 
-  return Object.keys(this).every(function(key) { return other[key] != null && self[key].eq(other[key]); });
+  return Object.keys(this).every(function(key) {
+    return other[key] != null && self[key].eq(other[key]);
+  });
 }
 Monoid(ObjectUnion, {
   id: new ObjectUnion({}),

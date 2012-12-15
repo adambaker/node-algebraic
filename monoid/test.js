@@ -27,8 +27,7 @@ function test_all_monoids()
       .map(check_laws)
   );
 
-  if(results.failed.val)
-  {
+  if(results.failed.val) {
     console.log( results);
     console.log( results.total_failed.val + ' test(s) failed:');
     results['groups'].forEach(function(group){
@@ -41,8 +40,7 @@ function test_all_monoids()
       console.log();
     })
   }
-  else
-  {
+  else {
     console.log('All tests passed.');
   }
   return results;
