@@ -7,8 +7,8 @@ In short, if a data type is a monoid, you can put two things of that type togeth
 get a new instance of that type.
 
 With a few restrictions. One is that the order of the items you combine can matter, but nesting
-can't. The other is that there has to be an identity element of that type for that operation, so
-that combining anything with the identity element returns the thing.
+can't. The other is that there has to be an neutral element of that type for that operation, so
+that combining anything with the neutral element returns the thing.
 
 ##Getting more formally acquainted.
 
@@ -128,9 +128,9 @@ An alternative approach is to build monoids around the binary operator itself. W
 of API, `Monoid` would be a constructor that takes a binary operator and an identity, and
 constructs a new monoid. Something like `Sum` might be:
 
-  sum = new Monoid(function(a, b) {return a + b}, {id: 0});
-  sum.id;     //=> 0
-  sum(5, 12); //=> 17
+    sum = new Monoid(function(a, b) {return a + b}, {id: 0});
+    sum.id;     //=> 0
+    sum(5, 12); //=> 17
 
 I may refactor my monoid code to use the operator-oriented representation in the future. For now,
 let's continue with this data-oriented representation.
@@ -360,7 +360,7 @@ properties are added to every monoid you declare:
         associativity:  function associativity(a, b, c){ return a._(b._(c)).eq( (a._(b))._(c) ); }
       };
 
-We can write a simple law checking function that teste that these laws hold:
+We can write a simple law checking function that tests that these laws hold:
 
     function check_laws(m) {
       console.log("Testing " + m.name + "'s monoid laws:");
@@ -392,7 +392,7 @@ It's that simple.
 
 Most of the monoids I've shown you are pretty simple. But square matrices of the same size form a
 monoid under matrix multiplication, with the identity matrix as the identity element. Testing the
-identity and associativity laws for matrix multiplication migth substantially increase our confidence
+identity and associativity laws for matrix multiplication might substantially increase our confidence
 in our implementation of matrix multiplication, especially since highly optimized algorithms for matrix
 multiplication are not trivial.
 
@@ -464,7 +464,7 @@ This defines a (non-monoidal) public interface for `Log`. You add a new log to y
 the `addLog` method with the property name you want and a monoidal constructor (which defaults to that
 monoid's `id`) or initial monoidal value. You log new data for a log property with the `log` method,
 passing in a plain-old js object whose keys are the log properties you want to add. The values of your
-the logs get updated by monoidal concatenation with the values in your object argument. As the guard
+logs get updated by monoidal concatenation with the values in your object argument. As the guard
 conditions indicate, both these methods mutate your log object in place. Don't try to do it with `Log.id`.
 Then `Log.id` would no longer be an identity for `Log.dot`, and all hell would break loose.
 
@@ -473,7 +473,7 @@ if you extend `Object.prototype` without marking your new properties not enumera
 
 This will be the most complex monoid in this post<sup>[\[4\]](#hask-tuple)</sup><a name="4"></a>, so we
 definitely want an `arb` method and an `eq` method to test those monoid laws just in case I've done
-something boneheaded with my `dot` method<sup>[\[4\]](#log-bug)</sup><a name="5"></a>.
+something boneheaded with my `dot` method<sup>[\[5\]](#log-bug)</sup><a name="5"></a>.
 
     function arbObject() {
       random_prop = String.arb();
@@ -537,7 +537,7 @@ and sums all the failures, and `failed` which starts false and flips to true jus
 If all the tests pass, this initial log is returned unchanged.
 
 The interesting case is when a test fails. First, we add a new property to the log, `info`, which is itself
-a log containing an `property` and `args`. `property` is an array with the name of the failing property,
+a log containing `property` and `args`. `property` is an array with the name of the failing property,
 and `args` is an array containing an array of the arguments that falsified the property. The nested log
 allows us to namespace logs. The `property` and `args` values are wrapped in arrays so that when we combine
 two logs summarizing failing tests, the properties and arguments that failed will be concatenated together,
@@ -648,7 +648,7 @@ similar in Haskell, you would have to declare a record type whose fields were th
 benefit to the static type is that accidental name collision would be much less likely to occur. But
 that one data type would have to know all the types of information logged in the various parts of the
 system, and it would have to change any time a new type of information was collected.[(back)](#4)  
-<a name="log-bugs">[5]</a> Of course, I did. I forgot to declare `result` with `var`, so nested logs
+<a name="log-bug">[5]</a> Of course, I did. I forgot to declare `result` with `var`, so nested logs
 crashed and burned horribly. Unfortunately my `arb` function doesn't generate nested logs, so my tests
 all pass the quickcheck. It's important to generate test data of at least the complexity found in the
 data in your app if you want quickcheck to _really_ give you confidence in your code. [(back)](#5)  
@@ -659,7 +659,7 @@ data in your app if you want quickcheck to _really_ give you confidence in your 
 [parallel]: https://github.com/adambaker/node-algebraic/blob/master/monoid/parallel.js
 [worker]: https://github.com/adambaker/node-algebraic/blob/master/monoid/worker.js
 [rivertrail]: https://github.com/RiverTrail/RiverTrail
-[qc-primer]: http://categorically-abstract.tumblr.com/post/37812006963/property-based-testing-primer
+[qc-primer]: http://categorially-abstract.tumblr.com/post/37812006963/property-based-testing-primer
 [monoid-comment]: http://www.haskell.org/pipermail/haskell-cafe/2009-January/053603.html
 [monoid-prefs]: http://www.haskell.org/pipermail/haskell-cafe/2009-January/053721.html
 [finger-tree]: http://apfelmus.nfshost.com/articles/monoid-fingertree.html
